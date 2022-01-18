@@ -13,11 +13,10 @@ let playbackRate = 0.8;
 const slp1 = Sanscript.schemes.slp1;
 const consonants = Object.keys(slp1.consonants).map(i => slp1.consonants[i])
 
-let shlokaNum = '1.1.1';
+const defaultShlokaNum = '1.1.1';
+let shlokaNum = defaultShlokaNum;
 
 const shlokas = new Map();
-const prevShloka = new Map();
-const nextShloka = new Map();
 
 const searchParams = new URLSearchParams(window.location.search);
 if(searchParams.has('shloka')) {
@@ -25,17 +24,14 @@ if(searchParams.has('shloka')) {
 }
 
 function showShloka(num) {
-	let prev = null;
-	let next = null;
+	if(!shlokas.has(num) ) num = defaultShlokaNum;
 
-	if(!shlokas.has(num) ) return;
-	if(prevShloka.has(num)) {prev = prevShloka.get(num)};
-	if(nextShloka.has(num)) {next = nextShloka.get(num)}
-
-    let data = shlokas.get(num);
-	let words = data.words;
+    let shloka = shlokas.get(num);
+	let words = shloka.words;
 	let text = words[0].shlokaH.replace('।', '।<br>');
 	let table = createTable(words);
+	let prev = shloka.prev;
+	let next = shloka.next;
 
 	if(table != '') {
 		wordButton.classList.remove('invisible');
@@ -50,9 +46,9 @@ function showShloka(num) {
 	padaani.innerHTML = table;
 	padaani.classList.add('invisible');
 
-	audioElement.dataset.begin = data.begin;
-	audioElement.dataset.duration = (data.end - data.begin);
-	audioElement.src = data.audioUrl;
+	audioElement.dataset.begin = shloka.begin;
+	audioElement.dataset.duration = (shloka.end - shloka.begin);
+	audioElement.src = shloka.audioUrl;
 
 	if(prev == null) {
 		prevButton.classList.add('invisible');
@@ -124,22 +120,20 @@ function playAudio() {
 
 function parseData(csv_data) {
 	let num = '';
-	let text = '';
 	let words = [];
+	let shloka = null;
 
-	csv_data.data.forEach( (item) => {
+	csv_data.data.forEach( (item, index) => {
 		if(item.num != '') {
 			// New shloka starts
 			if(num != '') {
-				shlokas.set(num, {words: words});
-				prevShloka.set(item.num, num);
-				nextShloka.set(num, item.num);
+				shloka.next = item.num;
 			}
+			shloka = {words: [item], prev: num};
 		    num = item.num;
-		    text = item.shlokaH;
-		    words = [item];
-		} else {
-			words.push(item);
+		    shlokas.set(num, shloka);
+		} else if (shloka != null) {
+			shloka.words.push(item);
 		}
 	});
 
@@ -162,6 +156,8 @@ function parseAudioData(csv_data) {
 			obj.begin = item.begin;
 			obj.end = item.end;
 			obj.audioUrl = item.audio_url;
+		} else {
+			console.warn('Shloka not found in spreadsheet:' + item.shloka_num);
 		}
 	});
 	//console.log(shlokas);
@@ -176,7 +172,6 @@ function ready() {
 
 }
 
-//let dataUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSam328UZJFE6ZzKMWVnL8koGcH9ZatuC8ktBsGVtn2C4DkHtwlZLZ_jlhVB1hY5ERjDvvH_kprD0vV/pub?gid=1065135109&single=true&output=csv";
 let dataUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRG3EzFj6zUUQ66Au2A_epe4An65hqrTRHDhSiqkaToTOX7-_WqUlGvZOXeeoIjincVNM-GKVksIVaZ/pub?gid=1300231771&single=true&output=csv";
 let audioDataUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRG3EzFj6zUUQ66Au2A_epe4An65hqrTRHDhSiqkaToTOX7-_WqUlGvZOXeeoIjincVNM-GKVksIVaZ/pub?gid=1905525739&single=true&output=csv";
 
