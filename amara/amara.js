@@ -11,7 +11,6 @@ let wordButton = document.getElementById('wordButton');
 let playbackRate = 0.8;
 
 const slp1 = Sanscript.schemes.slp1;
-const consonants = Object.keys(slp1.consonants).map(i => slp1.consonants[i])
 
 const defaultShlokaNum = '1.1.1';
 let shlokaNum = defaultShlokaNum;
@@ -23,12 +22,30 @@ if(searchParams.has('shloka')) {
 	shlokaNum = searchParams.get('shloka');
 }
 
+const audioAlarm = {
+    fire: function() {
+        audioElement.pause();
+        this.timeoutID = undefined;
+    },
+    setup: function(duration) {
+        if (typeof this.timeoutID === 'number') {
+            this.cancel();
+        }
+        this.timeoutID = setTimeout(function() {
+          this.fire();
+        }.bind(this), duration);
+    },
+    cancel: function() {
+        clearTimeout(this.timeoutID);
+    }
+};
+
 function showShloka(num) {
 	if(!shlokas.has(num) ) num = defaultShlokaNum;
 
     let shloka = shlokas.get(num);
 	let words = shloka.words;
-	let text = words[0].shlokaH.replace('।', '।<br>');
+	let text = words[0].shlokaH.replaceAll('।', '।<br>');
 	let table = createTable(words);
 	let prev = shloka.prev;
 	let next = shloka.next;
@@ -47,7 +64,7 @@ function showShloka(num) {
 	padaani.classList.add('invisible');
 
 	audioElement.dataset.begin = shloka.begin;
-	audioElement.dataset.duration = (shloka.end - shloka.begin);
+	audioElement.dataset.end = shloka.end;
 	audioElement.src = shloka.audioUrl;
 
 	if(prev == null) {
@@ -84,13 +101,8 @@ function createTable(words) {
 		h += '<thead class="thead-light">';
 		headers.forEach( (item) => {h += '<th scope="row">' + item + '</th>'});
 		words.forEach( (item) => {
-			let word_slp1 = Sanscript.t(item.mUlashabdaH, 'devanagari', 'slp1');
-			let antaH = word_slp1[word_slp1.length-1];
-			if(consonants.includes(antaH)) { antaH += 'a'}
-			antaH += 'kArAntaH';
-			antaH = Sanscript.t(antaH, 'slp1', 'devanagari');
 			h += '<tr><td>' + item.padam + '</td><td>' + item.mUlashabdaH + '</td>';
-			h += '<td>' + item.lingam + '</td><td>' + antaH + '</td>';
+			h += '<td>' + item.lingam + '</td><td>' + item.antavyavasthA + '</td>';
 			h += '<td>' + item.arthaH + '</td></tr>'
 		});
     }
@@ -109,13 +121,18 @@ function toggleWords(src) {
 }
 
 function playAudio() {
-	let duration = audioElement.dataset.duration;
+	let duration = audioElement.dataset.end - audioElement.dataset.begin;
 
 	audioElement.playbackRate = playbackRate;
 	audioElement.currentTime = audioElement.dataset.begin;
 
-	setTimeout( () => {audioElement.pause()}, (duration/playbackRate)*1000);
+	//setTimeout( () => {audioElement.pause(); console.log('Timeout expired')}, (duration/playbackRate)*1000);
 	audioElement.play();
+	audioAlarm.setup((duration/playbackRate)*1000);
+}
+
+function pauseAudio() {
+	audioElement.pause();
 }
 
 function parseData(csv_data) {
@@ -165,6 +182,7 @@ function parseAudioData(csv_data) {
 }
 
 function ready() {
+	spinnerElement.classList.remove('spinner-border');
     spinnerElement.classList.add('invisible');
 	contentElement.classList.remove('invisible');
 
