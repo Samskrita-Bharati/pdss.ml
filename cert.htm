@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Boston स्पर्धा  Certificate - Samskrita Bharati, USA</title>
+<link href="https://fonts.googleapis.com/css2?family=Engagement&display=swap" rel="stylesheet">
+</head>
+<body>
+<img id="cert" width="0" height="0"
+src="b21c-blank.png" alt="cert">
+<div style="font-family: Engagement;">.</div>
+<canvas id="myCanvas" width="1200" height="900"
+style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+<script>
+window.onload = function() {
+var nams = ["sra vee"];
+var w=0;
+var h=0;
+var nam=prompt("नाम किम् ? naama kim ? [Enter your name and then choose 'Save Image As ..' for the generated Certificate]");//.toUpperCase();
+if (nams.includes(nam)) {
+w=1200;
+h=900;}
+else {
+w=1.2*10;
+h=0.9*10;
+}
+//w=1200;
+//h=900;
+var canvas = document.getElementById('myCanvas');
+     var  context = canvas.getContext('2d');
+
+    // resize the canvas to fill browser window dynamically
+    window.addEventListener('resize', resizeCanvas, false);
+
+    function resizeCanvas() {
+            //canvas.width = window.innerWidth;
+            //canvas.height = window.innerHeight;
+
+            /**
+             * Your drawings need to be inside this function otherwise they will be reset when 
+             * you resize the browser window and the canvas goes will be cleared.
+             */
+            drawStuff(); 
+    }
+    resizeCanvas();
+    function drawStuff() {
+            // do your drawing stuff here
+			   var img = document.getElementById("cert");
+   context.drawImage(img, 0, 0,w,h);
+   context.font="72px Engagement";
+   context.fillStyle = "#855f35";
+   context.fillStyle = "#ff0000";
+   context.textAlign = "center";
+   context.fillText(nam, canvas.width/2, canvas.height/1.8);
+    }
+
+};
+</script>
+</body>
+</html>
