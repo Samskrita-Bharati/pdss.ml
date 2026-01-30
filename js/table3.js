@@ -2,7 +2,16 @@ var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept"
 var weekdays   = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 weekdays = ["सोमवासरः", "मङ्गलवासरः", "बुधवासरः", "गुरुवासरः", "शुक्रवासरः", "शनिवासरः", "रविवासरः"]
 var symbols = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९','१०', '११', '१२', '१३', '१४', '१५', '१६', '१७', '१८', '१९','२०', '२१', '२२', '२३', '२४', '२५', '२६', '२७', '२८', '२९','३०','३१'];
-var today  = new Date()
+const urlParams = new URLSearchParams(window.location.search);
+var o = urlParams.get('pdkm');
+if (o!="aam")
+{
+var today  = new Date();
+}
+else
+{
+var today = new Date(2026,12,30,00,00,00);
+}
 var months = []
 
 function generateCalendar (eventData) {
@@ -45,7 +54,15 @@ function appendEvent( event ) {
   var eventStartDate = new Date(event.startdate)
   var eventEndDate   = new Date(event.enddate)
   var eventElement   = $('<div class="event"><a target="_blank" href="' + event.tickets + event.name + '">' + event.name + " - " + event.time + '</a></div>')
-
+if (eventStartDate < today)
+	{
+	  var eventElement = $('<div class="event pastd"><a target="bp26" href="' + event.tickets + event.location + '">' + event.name + " - " + event.time + '</a></div>')
+	}
+	  else
+	  {
+		var eventElement = $('<div class="event">' + event.name + " - " + event.time + '</div>')
+	  }
+	
   // Handle multi-days
   if ( eventEndDate.getDate() ) {
     var date         = eventStartDate
